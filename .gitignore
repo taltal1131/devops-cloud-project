@@ -1,0 +1,18 @@
+# Node.js
+node_modules/
+app/.env
+
+# Logs
+*.log
+
+# Terraform
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+.terraform/
+
+# SSH Keys
+*.pem
+
+# VSCode
+.vscode/
