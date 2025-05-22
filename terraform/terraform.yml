@@ -9,6 +9,11 @@ jobs:
     defaults:
       run:
         working-directory: terraform
+    env:
+      TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_private_key_path: "/home/runner/.ssh/devops-key.pem"
+      TF_VAR_key_name: "devops-key"
 
     steps:
     - name: Checkout code
@@ -16,6 +21,12 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
+
+    - name: Create SSH private key file
+      run: |
+        mkdir -p /home/runner/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > /home/runner/.ssh/devops-key.pem
+        chmod 600 /home/runner/.ssh/devops-key.pem
 
     - name: Terraform Init
       run: terraform init
@@ -25,8 +36,3 @@ jobs:
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
-      env:
-        TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        TF_VAR_private_key_path: "./devops-key.pem"
-        TF_VAR_key_name: "devops-key"
