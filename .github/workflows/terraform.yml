@@ -28,6 +28,7 @@ jobs:
 
     - name: Create SSH private key file
       run: |
+        mkdir -p /home/runner/.ssh
         echo "${{ secrets.EC2_SSH_KEY }}" > /home/runner/.ssh/devops-key.pem
         chmod 600 /home/runner/.ssh/devops-key.pem
 
