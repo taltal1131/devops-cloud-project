@@ -6,11 +6,11 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up Node.js
@@ -26,8 +26,16 @@ jobs:
       run: npm test
       working-directory: ./app
 
-    - name: Build Docker image
+    - name: Create SSH key
       run: |
-        docker build -t my-node-app ./app
+        echo "${{ secrets.EC2_SSH_KEY }}" > ec2-key.pem
+        chmod 600 ec2-key.pem
 
-    # נכניס את שלב ה-Deploy ל-EC2 רק בשלב הבא כשנסיים את ה-Terraform
+    - name: Deploy to EC2 via SSH
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ec2-key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+          docker pull yourdockerhubuser/your-image:latest
+          docker stop my-app || true
+          docker rm my-app || true
+          docker run -d --name my-app -p 80:3000 yourdockerhubuser/your-image:latest
+        EOF
