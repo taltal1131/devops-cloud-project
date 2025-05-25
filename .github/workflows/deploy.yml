@@ -11,25 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-# חזור לתיקיית הפרויקט
-cd ~/Desktop/projects/devops-cloud-project
-
-# צור את הקובץ מחדש
-cat > .github/workflows/deploy.yml << 'EOF'
-name: Deploy to AWS via Terraform
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  terraform:
-    name: Terraform Deploy
-    runs-on: ubuntu-latest
-
-    steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
