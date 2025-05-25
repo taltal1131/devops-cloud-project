@@ -1,20 +1,34 @@
 variable "aws_access_key" {
+  description = "AWS Access Key"
   type        = string
-  description = "Your AWS access key"
 }
 
 variable "aws_secret_key" {
+  description = "AWS Secret Key"
   type        = string
-  description = "Your AWS secret key"
-  sensitive   = true
 }
 
 variable "private_key_path" {
+  description = "Path to SSH private key"
   type        = string
-  description = "Path to your SSH private key"
 }
 
 variable "key_name" {
+  description = "EC2 Key Pair name"
   type        = string
-  description = "Name of your AWS EC2 key pair"
+}
+
+variable "region" {
+  description = "AWS region to deploy into"
+  type        = string
+}
+
+variable "ami_id" {
+  description = "AMI ID to launch"
+  type        = string
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
 }
