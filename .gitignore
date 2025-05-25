@@ -5,18 +5,13 @@ app/.env
 # Logs
 *.log
 
-# Terraform
+# Terraform state and cache (מומלץ להשאיר חסום)
 terraform.tfstate
 terraform.tfstate.backup
-terraform.tfvars
 .terraform/
 
-# SSH Keys
+# SSH Keys (חסום מפתחות!)
 *.pem
 
-# VSCode
+# VSCode (רק מקומית)
 .vscode/
-terraform.tfvars
-terraform.tfvars
-terraform.tfvars
-terraform/terraform.tfvars
