@@ -1,3 +1,4 @@
+
 ## 🚀 Deployment
 
 This project is automatically deployed to AWS using:
@@ -14,3 +15,4 @@ After deployment, you can access your app at:
 
 ```bash
 http://<EC2_PUBLIC_IP>:3000
+```
