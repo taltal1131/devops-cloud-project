@@ -1,42 +1,48 @@
-name: Terraform CI/CD
+name: Terraform Deployment via GitHub Actions
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform
-    env:
-      TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      TF_VAR_private_key_path: "/home/runner/.ssh/devops-key.pem"
-      TF_VAR_key_name: "devops-key"
-      TF_LOG: DEBUG
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Set up SSH private key
+      run: |
+        echo "${{ secrets.AWS_PRIVATE_KEY }}" > github-key.pem
+        chmod 400 github-key.pem
+
+    - name: Check SSH key format
+      run: |
+        echo "🔍 Checking if github-key.pem is valid..."
+        if grep -q "BEGIN RSA PRIVATE KEY" github-key.pem; then
+          echo "✅ SSH key format looks valid."
+        else
+          echo "❌ SSH key format is invalid or incomplete."
+          cat github-key.pem
+          exit 1
+        fi
 
     - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v3
-
-    - name: Create SSH private key file
-      run: |
-        mkdir -p /home/runner/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > /home/runner/.ssh/devops-key.pem
-        chmod 600 /home/runner/.ssh/devops-key.pem
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.7
 
     - name: Terraform Init
       run: terraform init
 
-    - name: Terraform Plan
-      run: terraform plan
-
     - name: Terraform Apply
       run: terraform apply -auto-approve
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: SSH Test to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@3.83.68.73 "echo ✅ Connected to EC2!"
