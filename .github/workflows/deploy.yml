@@ -10,25 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Set up SSH key
       run: |
-        echo "$AWS_PRIVATE_KEY" > devops-key.pem
+        echo "${{ secrets.AWS_PRIVATE_KEY }}" > devops-key.pem
         chmod 400 devops-key.pem
-      env:
-        AWS_PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY }}
 
     - name: Test SSH Connection
       run: |
-        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "echo '✅ Connected to EC2'"
-
-    - name: Check Docker & App Health
-      run: |
-        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "
-          echo '📦 Docker containers:' &&
-          docker ps &&
-          echo '🔍 App health check:' &&
-          curl -f http://localhost:3000/health || echo '❌ App is not responding'
-        "
+        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "echo ✅ Connected to EC2!"
