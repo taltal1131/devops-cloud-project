@@ -38,9 +38,15 @@ jobs:
           -var="instance_type=t3.micro" \
           -var="key_name=github-key"
 
-    - name: Set up SSH private key (optional, only if connecting to EC2)
+    - name: Get EC2 Public IP
+      id: get_ip
       run: |
-        echo "${{ secrets.EC2_PRIVATE_KEY }}" > github-key.pem
+        cd terraform
+        echo "IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+
+    - name: Set up SSH private key
+      run: |
+        echo "${{ secrets.EC2_PRIVATE_KEY }}" | tr -d '\r' > github-key.pem
         chmod 400 github-key.pem
 
     - name: Check SSH key format
@@ -49,7 +55,7 @@ jobs:
 
     - name: SSH Test and Health Check
       run: |
-        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@<REPLACE_WITH_PUBLIC_IP> << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@${{ steps.get_ip.outputs.IP }} << 'EOF'
           echo "✅ Connected to EC2!"
           curl -f http://localhost:3000/health || echo "❌ Health check failed"
         EOF
