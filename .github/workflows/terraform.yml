@@ -20,14 +20,7 @@ jobs:
 
     - name: Check SSH key format
       run: |
-        echo "🔍 Checking if github-key.pem is valid..."
-        if grep -q "BEGIN RSA PRIVATE KEY" github-key.pem; then
-          echo "✅ SSH key format looks valid."
-        else
-          echo "❌ SSH key format is invalid or incomplete."
-          cat github-key.pem
-          exit 1
-        fi
+        grep -q "BEGIN RSA PRIVATE KEY" github-key.pem && echo "✅ SSH key format OK" || (echo "❌ SSH key format invalid"; exit 1)
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v2
@@ -35,19 +28,17 @@ jobs:
         terraform_version: 1.5.7
 
     - name: Terraform Init
-      run: terraform init
+      run: cd terraform && terraform init
 
     - name: Terraform Apply
-      run: terraform apply -auto-approve
+      run: cd terraform && terraform apply -auto-approve
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: SSH Test to EC2 and Health Check
       run: |
-        echo "🔐 Connecting to EC2..."
         ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@3.83.68.73 << 'EOF'
           echo "✅ Connected to EC2!"
-          echo "🌐 Testing app health check:"
           curl -f http://localhost:3000/health || echo "❌ Health check failed"
         EOF
