@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v2
 
     - name: Set up SSH private key
@@ -43,6 +43,11 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: SSH Test to EC2
+    - name: SSH Test to EC2 and Health Check
       run: |
-        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@3.83.68.73 "echo ✅ Connected to EC2!"
+        echo "🔐 Connecting to EC2..."
+        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@3.83.68.73 << 'EOF'
+          echo "✅ Connected to EC2!"
+          echo "🌐 Testing app health check:"
+          curl -f http://localhost:3000/health || echo "❌ Health check failed"
+        EOF
