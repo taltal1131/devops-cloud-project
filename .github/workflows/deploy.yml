@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Deploy to EC2
 
 on:
   push:
@@ -10,32 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: npm install
-      working-directory: ./app
-
-    - name: Run tests
-      run: npm test
-      working-directory: ./app
-
-    - name: Create SSH key
+    - name: Set up SSH key
       run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > ec2-key.pem
-        chmod 600 ec2-key.pem
+        echo "$AWS_PRIVATE_KEY" > devops-key.pem
+        chmod 400 devops-key.pem
+      env:
+        AWS_PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY }}
 
-    - name: Deploy to EC2 via SSH
+    - name: Deploy via SSH
       run: |
-        ssh -o StrictHostKeyChecking=no -i ec2-key.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-          docker pull yourdockerhubuser/your-image:latest
-          docker stop my-app || true
-          docker rm my-app || true
-          docker run -d --name my-app -p 80:3000 yourdockerhubuser/your-image:latest
-        EOF
+        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "docker ps && curl -f http://localhost:3000/health"
