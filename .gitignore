@@ -16,3 +16,4 @@ terraform.tfvars
 
 # VSCode
 .vscode/
+terraform.tfvars
