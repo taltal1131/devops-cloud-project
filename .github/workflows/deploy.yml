@@ -1,4 +1,3 @@
-
 name: Deploy to AWS via Terraform
 
 on:
@@ -43,4 +42,8 @@ jobs:
             -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -var="ec2_private_key=${{ secrets.EC2_PRIVATE_KEY }}"
+        working-directory: terraform
+
+      - name: 🌐 Show EC2 Public IP
+        run: terraform output -no-color instance_public_ip
         working-directory: terraform
