@@ -1,4 +1,4 @@
-name: Deploy to AWS via Terraform
+name: Deploy to AWS EC2 with Terraform
 
 on:
   push:
@@ -6,46 +6,54 @@ on:
       - main
 
 jobs:
-  terraform:
-    name: Terraform Deploy
+  deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
-
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: 🧰 Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        region: us-east-1
 
-      - name: ⚙️ Terraform Init
-        run: terraform init
-        working-directory: terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.6.6
 
-      - name: 📋 Terraform Plan
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
+    - name: Write private key
+      run: |
+        echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > devops-key.pem
+        chmod 400 devops-key.pem
+
+    - name: Wait for EC2 to be ready
+      run: sleep 60
+
+    - name: Deploy to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@$(terraform output -raw public_ip) << 'EOF'
+          docker stop myapp || true
+          docker rm myapp || true
+          docker pull myuser/myapp:latest
+          docker run -d -p 80:3000 --name myapp myuser/myapp:latest
+        EOF
+
+
+      - name: 🕵️ Check EC2 container status
         run: |
-          terraform plan \
-            -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var="ec2_private_key=${{ secrets.EC2_PRIVATE_KEY }}"
-        working-directory: terraform
-
-      - name: 🚀 Terraform Apply
-        run: |
-          terraform apply -auto-approve \
-            -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var="ec2_private_key=${{ secrets.EC2_PRIVATE_KEY }}"
-        working-directory: terraform
-
-      - name: 🌐 Show EC2 Public IP (clean)
-        run: |
+          echo "Waiting for instance to be ready..."
+          sleep 30
           IP=$(terraform output -raw instance_public_ip)
-          echo "✅ EC2 is live at: http://$IP:3000"
+          echo "Trying to connect to: http://$IP:3000"
+          curl --connect-timeout 10 http://$IP:3000 || echo "❌ Could not connect to EC2 app on port 3000"
         working-directory: terraform
