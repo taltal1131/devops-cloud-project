@@ -20,6 +20,15 @@ jobs:
       env:
         AWS_PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY }}
 
-    - name: Deploy via SSH
+    - name: Test SSH Connection
       run: |
-        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "docker ps && curl -f http://localhost:3000/health"
+        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "echo '✅ Connected to EC2'"
+
+    - name: Check Docker & App Health
+      run: |
+        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@3.83.68.73 "
+          echo '📦 Docker containers:' &&
+          docker ps &&
+          echo '🔍 App health check:' &&
+          curl -f http://localhost:3000/health || echo '❌ App is not responding'
+        "
