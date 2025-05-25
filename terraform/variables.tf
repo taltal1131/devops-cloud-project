@@ -8,27 +8,22 @@ variable "aws_secret_key" {
   type        = string
 }
 
-variable "private_key_path" {
-  description = "Path to SSH private key"
-  type        = string
-}
-
-variable "key_name" {
-  description = "EC2 Key Pair name"
-  type        = string
-}
-
 variable "region" {
-  description = "AWS region to deploy into"
+  description = "AWS region"
   type        = string
 }
 
 variable "ami_id" {
-  description = "AMI ID to launch"
+  description = "AMI ID to use"
   type        = string
 }
 
 variable "instance_type" {
   description = "EC2 instance type"
+  type        = string
+}
+
+variable "key_name" {
+  description = "SSH Key Pair name"
   type        = string
 }

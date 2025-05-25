@@ -32,6 +32,6 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: SSH Test (after apply)
+    - name: SSH Test
       run: |
-        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@3.83.68.73 "echo ✅ Connected to EC2!"
+        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@${{ steps.apply.outputs.public_ip }} "echo ✅ Connected to EC2!"
