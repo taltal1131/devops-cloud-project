@@ -1,6 +1,0 @@
-aws_access_key     = "AKIA2ZZMXV5GADVBZYYY"
-aws_secret_key     = "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"
-region             = "eu-north-1"
-ami_id             = "ami-0989fb15ce71ba39e"
-instance_type      = "t3.micro"
-key_name           = "github-key"
