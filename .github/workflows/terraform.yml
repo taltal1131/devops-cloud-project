@@ -31,12 +31,17 @@ jobs:
       run: cd terraform && terraform init
 
     - name: Terraform Apply
-      run: cd terraform && terraform apply -auto-approve
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        cd terraform
+        terraform apply -auto-approve \
+          -var='aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}' \
+          -var='aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+          -var='region=eu-north-1' \
+          -var='ami_id=ami-0989fb15ce71ba39e' \
+          -var='instance_type=t3.micro' \
+          -var='key_name=github-key'
 
-    - name: SSH Test to EC2 and Health Check
+    - name: SSH Test and Health Check
       run: |
         ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@3.83.68.73 << 'EOF'
           echo "✅ Connected to EC2!"
