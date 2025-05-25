@@ -1,3 +1,4 @@
+
 name: Deploy to AWS via Terraform
 
 on:
@@ -10,9 +11,10 @@ jobs:
     name: Terraform Deploy
     runs-on: ubuntu-latest
 
-    env:  # ✅ הוספה קריטית ל-AWS credentials
+    env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
 
     steps:
       - name: 📥 Checkout repository
@@ -23,33 +25,22 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: 🔐 Write EC2 private key from GitHub Secret
-        run: |
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > github-key.pem
-          chmod 600 github-key.pem
-        working-directory: terraform
-
-      - name: 📝 Create terraform.tfvars dynamically
-        run: |
-          cat <<EOF2 > terraform.tfvars
-          ec2_private_key = file("\${path.module}/github-key.pem")
-          key_name        = "github-key"
-          region          = "us-east-1"
-          ami_id          = "ami-0c55b159cbfafe1f0"
-          instance_type   = "t2.micro"
-          aws_access_key  = "\${AWS_ACCESS_KEY_ID}"
-          aws_secret_key  = "\${AWS_SECRET_ACCESS_KEY}"
-          EOF2
-        working-directory: terraform
-
       - name: ⚙️ Terraform Init
         run: terraform init
         working-directory: terraform
 
       - name: 📋 Terraform Plan
-        run: terraform plan -var-file="terraform.tfvars"
+        run: |
+          terraform plan \
+            -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var="ec2_private_key=${{ secrets.EC2_PRIVATE_KEY }}"
         working-directory: terraform
 
       - name: 🚀 Terraform Apply
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        run: |
+          terraform apply -auto-approve \
+            -var="aws_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -var="aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -var="ec2_private_key=${{ secrets.EC2_PRIVATE_KEY }}"
         working-directory: terraform
