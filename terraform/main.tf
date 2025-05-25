@@ -5,9 +5,10 @@ provider "aws" {
 }
 
 resource "aws_instance" "devops_instance" {
-  ami           = var.ami_id
-  instance_type = var.instance_type
-  key_name      = var.key_name
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  key_name               = var.key_name
+  vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
 
   tags = {
     Name = "DevOpsEC2"
@@ -25,12 +26,34 @@ resource "aws_instance" "devops_instance" {
     connection {
       type        = "ssh"
       user        = "ec2-user"
-      private_key = file("${path.module}/github-key.pem")
+      private_key = var.ec2_private_key
       host        = self.public_ip
     }
   }
 }
 
-output "instance_ip" {
-  value = aws_instance.devops_instance.public_ip
+resource "aws_security_group" "allow_ssh_http" {
+  name        = "allow_ssh_http"
+  description = "Allow SSH and HTTP/3000"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }

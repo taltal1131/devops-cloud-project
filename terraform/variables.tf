@@ -26,6 +26,12 @@ variable "instance_type" {
 }
 
 variable "key_name" {
-  description = "EC2 SSH Key Name (must exist in AWS)"
+  description = "EC2 SSH Key Name"
   default     = "github-key"
+}
+
+variable "ec2_private_key" {
+  description = "The private SSH key used to connect to EC2"
+  type        = string
+  sensitive   = true
 }

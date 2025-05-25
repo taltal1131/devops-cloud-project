@@ -37,7 +37,8 @@ jobs:
           -var="region=eu-north-1" \
           -var="ami_id=ami-0989fb15ce71ba39e" \
           -var="instance_type=t3.micro" \
-          -var="key_name=github-key"
+          -var="key_name=github-key" \
+          -var="ec2_private_key=${{ secrets.EC2_PRIVATE_KEY }}"
 
     - name: Get EC2 Public IP
       id: get_ip
