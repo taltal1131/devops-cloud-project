@@ -42,7 +42,7 @@ jobs:
       id: get_ip
       run: |
         cd terraform
-        echo "IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+        echo "ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
 
     - name: Set up SSH private key
       run: |
@@ -55,7 +55,7 @@ jobs:
 
     - name: SSH Test and Health Check
       run: |
-        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@${{ steps.get_ip.outputs.IP }} << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i github-key.pem ec2-user@${{ steps.get_ip.outputs.ip }} << 'EOF'
           echo "✅ Connected to EC2!"
           curl -f http://localhost:3000/health || echo "❌ Health check failed"
         EOF
