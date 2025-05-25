@@ -1,12 +1,16 @@
-# DevOps Cloud Project
+## 🚀 Deployment
 
-This project demonstrates a full DevOps pipeline including:
+This project is automatically deployed to AWS using:
 
-- Node.js Express app in a Docker container
-- CI/CD using GitHub Actions
-- Infrastructure as Code with Terraform
-- Deployment to AWS EC2
-- Monitoring with Prometheus & Grafana (Coming Soon)
+- GitHub Actions + Terraform
+- EC2 Instance with Docker container
+- Runs the image: `taltal1131/devops-full-app:latest`
 
-## Structure
+To trigger deployment, simply push to the `main` branch.
 
+### Output
+
+After deployment, you can access your app at:
+
+```bash
+http://<EC2_PUBLIC_IP>:3000

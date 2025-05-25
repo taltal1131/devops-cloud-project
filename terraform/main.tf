@@ -10,6 +10,27 @@ resource "aws_instance" "devops_instance" {
   key_name      = var.key_name
 
   tags = {
-    Name = "DevOpsApp"
+    Name = "DevOpsEC2"
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -y",
+      "sudo apt install docker.io -y",
+      "sudo systemctl start docker",
+      "sudo systemctl enable docker",
+      "docker run -d -p 3000:3000 taltal1131/devops-full-app:latest"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = file("${path.module}/github-key.pem")
+      host        = self.public_ip
+    }
+  }
+}
+
+output "instance_ip" {
+  value = aws_instance.devops_instance.public_ip
 }
