@@ -1,26 +1,24 @@
 provider "aws" {
-  region     = "eu-north-1" # סטוקהולם - Free Tier זמין
+  region     = var.region
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
 }
 
 resource "aws_instance" "devops_instance" {
-  ami           = "ami-06129dcfcca4f3fd4"  # Amazon Linux 2 – זמין ב־eu-north-1
-  instance_type = "t3.micro"              # Free Tier (ב־eu-north-1 לא תומך ב־t2.micro)
+  ami           = var.ami_id                      # ✅ לקוח מקובץ tfvars
+  instance_type = var.instance_type               # ✅ גם כן מקובץ tfvars
+  key_name      = var.key_name
 
   tags = {
     Name = "DevOpsApp"
   }
 
-  key_name = var.key_name
-
   provisioner "remote-exec" {
     inline = [
       "sudo yum update -y",
       "sudo yum install -y docker",
-      "sudo service docker start",
-      "sudo usermod -a -G docker ec2-user",
-      "newgrp docker"
+      "sudo systemctl start docker",
+      "sudo usermod -a -G docker ec2-user"
     ]
 
     connection {
