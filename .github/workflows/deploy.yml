@@ -11,6 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+# חזור לתיקיית הפרויקט
+cd ~/Desktop/projects/devops-cloud-project
+
+# צור את הקובץ מחדש
+cat > .github/workflows/deploy.yml << 'EOF'
+name: Deploy to AWS via Terraform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Terraform Deploy
+    runs-on: ubuntu-latest
+
+    steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
@@ -21,18 +40,20 @@ jobs:
 
       - name: 🔐 Write EC2 private key from GitHub Secret
         run: |
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > terraform/github-key.pem
-          chmod 600 terraform/github-key.pem
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > github-key.pem
+          chmod 600 github-key.pem
+        working-directory: terraform
 
       - name: 📝 Create terraform.tfvars dynamically
         run: |
-          cat <<EOF2 > terraform/terraform.tfvars
+          cat <<EOF2 > terraform.tfvars
           ec2_private_key = file("\${path.module}/github-key.pem")
           key_name        = "github-key"
           region          = "us-east-1"
           ami_id          = "ami-0c55b159cbfafe1f0"
           instance_type   = "t2.micro"
           EOF2
+        working-directory: terraform
 
       - name: ⚙️ Terraform Init
         run: terraform init
