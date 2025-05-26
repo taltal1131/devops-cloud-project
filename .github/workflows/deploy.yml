@@ -1,59 +1,41 @@
-name: Deploy to AWS EC2 with Terraform
+name: Deploy to EC2 with Terraform
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        region: us-east-1
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.6.6
+      - name: Initialize Terraform
+        run: terraform init
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Apply Terraform
+        run: terraform apply -auto-approve
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
+      - name: Save EC2 key
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > devops-key.pem
+          chmod 400 devops-key.pem
 
-    - name: Write private key
-      run: |
-        echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > devops-key.pem
-        chmod 400 devops-key.pem
+      - name: Wait for EC2 to be ready
+        run: sleep 60
 
-    - name: Wait for EC2 to be ready
-      run: sleep 60
-
-    - name: Deploy to EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@$(terraform output -raw public_ip) << 'EOF'
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -i devops-key.pem ec2-user@$(terraform output -raw public_ip) << 'EOF'
           docker stop myapp || true
           docker rm myapp || true
-          docker pull myuser/myapp:latest
-          docker run -d -p 80:3000 --name myapp myuser/myapp:latest
-        EOF
-
-
-      - name: 🕵️ Check EC2 container status
-        run: |
-          echo "Waiting for instance to be ready..."
-          sleep 30
-          IP=$(terraform output -raw instance_public_ip)
-          echo "Trying to connect to: http://$IP:3000"
-          curl --connect-timeout 10 http://$IP:3000 || echo "❌ Could not connect to EC2 app on port 3000"
-        working-directory: terraform
+          docker pull your-dockerhub-username/your-image
+          docker run -d --name myapp -p 80:80 your-dockerhub-username/your-image
+EOF
