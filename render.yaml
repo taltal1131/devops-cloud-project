@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: devops-cloud-project
+    env: docker
+    plan: free
+    autoDeploy: true
