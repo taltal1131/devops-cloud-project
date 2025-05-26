@@ -15,14 +15,13 @@ locals {
 
 resource "aws_key_pair" "generated_key" {
   key_name   = local.unique_key_name
-  key_name   = var.key_name
   public_key = tls_private_key.example.public_key_openssh
 }
 
 resource "aws_instance" "devops_instance" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  key_name               = aws_key_pair.generated_key.key_name
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  key_name                    = aws_key_pair.generated_key.key_name
   associate_public_ip_address = true
 
   user_data = <<-EOF
