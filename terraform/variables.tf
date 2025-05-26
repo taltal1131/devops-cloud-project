@@ -1,36 +1,18 @@
 
 variable "region" {
-  description = "AWS region"
-  type        = string
+  default = "eu-north-1"
 }
 
-variable "aws_access_key" {
-  description = "AWS access key"
-  type        = string
-}
-
-variable "aws_secret_key" {
-  description = "AWS secret access key"
-  type        = string
-}
-
+variable "aws_access_key" {}
+variable "aws_secret_key" {}
 variable "ami_id" {
-  description = "AMI ID to use for the EC2 instance"
-  type        = string
+  default = "ami-0c1a7f89451184c8b"
 }
 
 variable "instance_type" {
-  description = "Type of EC2 instance"
-  type        = string
-  default     = "t2.micro"
+  default = "t2.micro"
 }
 
 variable "key_name" {
-  description = "Name of the key pair in AWS"
-  type        = string
-}
-
-variable "ec2_private_key" {
-  description = "Private key used to SSH into the EC2 instance"
-  type        = string
+  default = "github-key"
 }
