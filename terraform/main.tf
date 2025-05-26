@@ -9,7 +9,12 @@ resource "tls_private_key" "example" {
   rsa_bits  = 4096
 }
 
+locals {
+  unique_key_name = "${var.key_name}-${timestamp()}"
+}
+
 resource "aws_key_pair" "generated_key" {
+  key_name   = local.unique_key_name
   key_name   = var.key_name
   public_key = tls_private_key.example.public_key_openssh
 }
